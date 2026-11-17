@@ -10,6 +10,8 @@ import { Dashboard, Gpa } from "./views/Me";
 import Chat from "./views/Chat";
 import Study from "./views/Study";
 import { Classmates, Manage } from "./views/Admin";
+import Gallery from "./views/Gallery";
+import About from "./views/About";
 
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
@@ -146,7 +148,7 @@ export default function App({ aiEnabled }) {
     body = <Pending />;
   } else {
     const V = { home: Home, me: Dashboard, chat: Chat, study: Study, gpa: Gpa, news: News, timetable: Timetable,
-      class: Classmates, notes: Notes, links: Links, manage: Manage }[route] || Home;
+      class: Classmates, notes: Notes, links: Links, manage: Manage, gallery: Gallery, about: About }[route] || Home;
     body = <V />;
   }
 

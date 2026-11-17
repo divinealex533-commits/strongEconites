@@ -11,6 +11,8 @@ Students sign up and log in with their **UNIBEN matric number** (EDU24\*\*\*\*\*
 - **Class Chat** — live group chat with who's online and typing indicators (Supabase Realtime)
 - **Study Hub** — AI tutor and 5-question practice quizzes (optional, needs an Anthropic API key)
 - **CGPA Calculator** — UNIBEN 5-point scale with class of degree
+- **Class Gallery** and profile photos
+- **Know UNIBEN** — school leaders, rules from the Student Handbook, the UNIBEN anthem and the national anthem (class reps can edit)
 - **Announcements, Timetable & Events, Notes & Assignments** (file uploads), **Classmates**, **School Links**
 - **Manage Site** — rename the class and every page, set allowed matric prefixes, welcome message, group link, school links
 - Class reps can approve members, reset passwords, make other admins and remove members
@@ -21,7 +23,7 @@ The **first person to sign up becomes the admin** automatically. Sign up first y
 
 ### 1. Supabase (database, logins, live chat, file storage)
 1. Go to [supabase.com](https://supabase.com) → **New project**. Pick a region close to Nigeria (e.g. *West EU* or *Cape Town*).
-2. Open **SQL Editor → New query**, paste everything from [`supabase/schema.sql`](supabase/schema.sql), and press **Run**.
+2. Open **SQL Editor → New query**, paste everything from [`supabase/schema.sql`](supabase/schema.sql), and press **Run**. Then do the same with [`supabase/002_gallery_about.sql`](supabase/002_gallery_about.sql).
 3. Open **Authentication → Sign In / Providers → Email** and turn **Confirm email** **off** (students sign in with matric numbers, not real emails).
 4. Open **Project Settings → API** and copy:
    - Project URL

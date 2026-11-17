@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useApp } from "../App";
 import { ConfirmButton, pageNameOf } from "./Main";
+import Avatar from "../Avatar";
 import { DEFAULT_PREFIXES, DEFAULT_WELCOME, DEPTS, LEVELS, PAGES, ROLES, safeUrl } from "@/lib/shared";
 
 function waLink(phone) {
@@ -103,7 +104,7 @@ export function Classmates() {
           const wa = waLink(m.phone);
           return (
             <div className="member" key={m.id}>
-              <div className="av">{String(m.full_name || "?").charAt(0).toUpperCase()}</div>
+              <Avatar person={m} size={44} />
               <div>
                 <div className="nm">{m.full_name}{m.id === uid && <span className="muted"> (you)</span>}</div>
                 <div className="muted small"><span className="mono">{m.matric}</span> · {m.level}

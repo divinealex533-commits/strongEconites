@@ -1,7 +1,55 @@
 "use client";
 import { useApp } from "../App";
 import { AnnItem, EventItem, useUpcoming } from "./Main";
+import { useRef, useState } from "react";
 import { degreeClass, fmtDate, gpaOf, grade, todayISO } from "@/lib/shared";
+import { squareAvatar } from "@/lib/image";
+import Avatar from "../Avatar";
+import { useGallery, GalleryUpload } from "./Gallery";
+
+function PhotoPicker() {
+  const { sb, uid, me, setMe, loadMembers, toast } = useApp();
+  const [busy, setBusy] = useState(false);
+  const input = useRef(null);
+  async function pick(e) {
+    const file = e.target.files?.[0]; e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    try {
+      const blob = await squareAvatar(file);
+      const path = `${uid}/avatar.jpg`;
+      const up = await sb.storage.from("avatars").upload(path, blob, { contentType: "image/jpeg", upsert: true });
+      if (up.error) throw new Error("Upload failed. Try again.");
+      const { data: pub } = sb.storage.from("avatars").getPublicUrl(path);
+      const avatar_url = pub.publicUrl + "?v=" + Date.now();
+      const { data, error } = await sb.from("profiles").update({ avatar_url }).eq("id", uid).select().single();
+      if (error) throw new Error("Couldn't save your photo.");
+      setMe(data); loadMembers(); toast("Profile photo updated");
+    } catch (err) { toast(err.message); }
+    finally { setBusy(false); }
+  }
+  return (
+    <div className="photo-pick">
+      <button type="button" className="avatar-btn" onClick={() => input.current.click()} aria-label="Change profile photo" disabled={busy}>
+        <Avatar person={me} size={88} />
+        <span className="cam">{busy ? "…" : "📷"}</span>
+      </button>
+      <input ref={input} type="file" accept="image/*" className="sr" onChange={pick} />
+    </div>
+  );
+}
+
+function GalleryStrip() {
+  const [items, reload] = useGallery(8);
+  return (
+    <section className="panel list">
+      <div className="pagehead"><h3>Class photos</h3><a href="#gallery">Open gallery →</a></div>
+      {items && items.length > 0 && <div className="strip">{items.map((it) => <a key={it.id} href="#gallery" className="strip-img"><img src={it.url} alt={it.caption || "Class photo"} loading="lazy" /></a>)}</div>}
+      {items && !items.length && <p className="empty">No class photos yet. Be the first to add one.</p>}
+      <details className="add"><summary>Add a photo</summary><GalleryUpload onDone={reload} compact /></details>
+    </section>
+  );
+}
 
 function CourseForm() {
   const { dash, saveDash } = useApp();
@@ -39,9 +87,10 @@ export function Dashboard() {
     <>
       <div className="pagehead"><h2>My Dashboard</h2><span className="chip">APPROVED MEMBER</span></div>
       <section className="panel idcard">
-        <div className="av big">{String(me.full_name).charAt(0).toUpperCase()}</div>
+        <PhotoPicker />
         <div><h3>{me.full_name}</h3><div className="mono">{me.matric}</div>
-          <div className="muted">{me.department} · {me.level} · {me.role}</div><a href="#class">Edit profile</a></div>
+          <div className="muted">{me.department} · {me.level} · {me.role}</div>
+          <span className="hint">{me.avatar_url ? "Tap your photo to change it." : "Tap the circle to add your photo."}</span> <a href="#class">Edit profile</a></div>
       </section>
       <div className="stats">
         <div className="stat"><span className="label">Lectures today</span><b>{todayLec.length}</b></div>
@@ -75,6 +124,7 @@ export function Dashboard() {
             : <p className="empty">Add the courses you registered on Kofa to keep them handy.</p>}
           <CourseForm /><p className="hint">Only you can see this list.</p></section>
       </div>
+      <GalleryStrip />
       <section className="panel list"><h3>Kofa shortcuts</h3>
         <p style={{ margin: 0 }}>Course registration, fees, results and hostel are on the official portal. Log in there with your own details.</p>
         <div className="actions"><a className="btnlink" href="https://waeup.uniben.edu" target="_blank" rel="noopener noreferrer">Open Kofa portal ↗</a>

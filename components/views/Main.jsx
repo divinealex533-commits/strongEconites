@@ -110,6 +110,16 @@ export function Home() {
           {up.slice(0, 4).map((e) => <EventItem key={e.id} e={e} />)}
           {!up.length && <p className="empty">No tests, exams or events scheduled.</p>}</section>
       </div>
+      <div className="grid2">
+        <a className="feature" href="#about">
+          <span className="label">Tap to open</span><b>{pageNameOf(st, "about")}</b>
+          <span className="muted">Vice-Chancellor and school leaders, school rules, the UNIBEN anthem and the national anthem.</span>
+        </a>
+        <a className="feature alt" href="#gallery">
+          <span className="label">Memories</span><b>{pageNameOf(st, "gallery")}</b>
+          <span className="muted">Class photos from lectures, presentations and events. Add yours.</span>
+        </a>
+      </div>
       <section className="list"><div className="pagehead"><h2 className="h-sm">{pageNameOf(st, "links")}</h2><a href="#links">All links</a></div>
         <div className="links">{(st.links || []).slice(0, 4).map((l, i) => <LinkCard key={i} l={l} />)}</div></section>
     </>

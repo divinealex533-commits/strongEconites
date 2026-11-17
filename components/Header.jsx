@@ -1,6 +1,7 @@
 "use client";
 import { useApp } from "./App";
 import { PAGES } from "@/lib/shared";
+import Avatar from "./Avatar";
 
 const WORDS = ["DEMAND", "SUPPLY", "ELASTICITY", "OPPORTUNITY COST", "GDP", "INFLATION", "LESSON PLAN", "PEDAGOGY",
   "MICRO · MACRO", "SOCIAL STUDIES", "₦ NAIRA", "BLOOM'S TAXONOMY"];
@@ -26,7 +27,7 @@ export default function Header({ showNav }) {
           </div>
           {me && (
             <div className="who">
-              <span className="avatar-sm">{String(me.full_name || "?").charAt(0).toUpperCase()}</span>
+              <Avatar person={me} size={34} className="on-band" />
               <span><span className="mono">{me.matric}</span>{isAdmin && <> · <span className="mono">ADMIN</span></>}</span>
               <button className="ghost light" onClick={logout}>Log out</button>
             </div>
