@@ -23,14 +23,14 @@ export function useUpcoming() {
 }
 
 export function AnnItem({ a }) {
-  const { isAdmin, members, sb, loadContent, toast } = useApp();
+  const { canPost, members, sb, loadContent, toast } = useApp();
   const author = members.find((m) => m.id === a.author_id);
   const act = async (fn, ok) => { const { error } = await fn; if (error) toast("Couldn't save. Try again."); else { if (ok) toast(ok); loadContent(); } };
   return (
     <article className={"item" + (a.pinned ? " pinned" : "")}>
-      <div className="meta">{a.pinned && <span className="chip gold">PINNED</span>}<span>{fmtDate(a.created_at)}</span><span>· {author?.full_name || "Class rep"}</span></div>
+      <div className="meta">{a.pinned && <span className="chip gold">PINNED</span>}<span>{fmtDate(a.created_at)}</span><span>· {author?.full_name || "Course rep"}</span></div>
       <h3>{a.title}</h3><p>{a.body}</p>
-      {isAdmin && <div className="actions">
+      {canPost && <div className="actions">
         <button className="ghost" onClick={() => act(sb.from("announcements").update({ pinned: !a.pinned }).eq("id", a.id))}>{a.pinned ? "Unpin" : "Pin"}</button>
         <ConfirmButton onConfirm={() => act(sb.from("announcements").delete().eq("id", a.id), "Deleted")} />
       </div>}
@@ -39,14 +39,14 @@ export function AnnItem({ a }) {
 }
 
 export function EventItem({ e }) {
-  const { isAdmin, sb, loadContent, toast } = useApp();
+  const { canPost, sb, loadContent, toast } = useApp();
   const chip = { exam: "chip red", test: "chip gold" }[e.kind] || "chip";
   const time = [e.start_time, e.end_time].filter(Boolean).join("–");
   return (
     <article className="item">
       <div className="meta"><span className={chip}>{e.kind.toUpperCase()}</span>{e.course_code && <span className="mono">{e.course_code}</span>}<span>{fmtDate(e.date)}{time && " · " + time}</span></div>
       <h3>{e.title}</h3>{e.venue && <p className="muted">Venue: {e.venue}</p>}
-      {isAdmin && <div className="actions"><ConfirmButton onConfirm={async () => {
+      {canPost && <div className="actions"><ConfirmButton onConfirm={async () => {
         const { error } = await sb.from("events").delete().eq("id", e.id); if (error) toast("Couldn't delete."); else loadContent();
       }} /></div>}
     </article>
@@ -54,7 +54,7 @@ export function EventItem({ e }) {
 }
 
 export function NoteItem({ n }) {
-  const { isAdmin, sb, loadContent, toast } = useApp();
+  const { canPost, sb, loadContent, toast } = useApp();
   const late = n.kind === "assignment" && n.due && n.due < todayISO();
   const open = async () => {
     const { data, error } = await sb.storage.from("notes").createSignedUrl(n.file_path, 3600);
@@ -78,7 +78,7 @@ export function NoteItem({ n }) {
       <div className="actions">
         {n.file_path && <button className="ghost" onClick={open}>Open file ↗</button>}
         {url && <a href={url} target="_blank" rel="noopener noreferrer">Open link ↗</a>}
-        {isAdmin && <ConfirmButton onConfirm={del} />}
+        {canPost && <ConfirmButton onConfirm={del} />}
       </div>
     </article>
   );
@@ -127,7 +127,7 @@ export function Home() {
 }
 
 export function News() {
-  const { settings: st, ann, isAdmin, sb, uid, loadContent, toast } = useApp();
+  const { settings: st, ann, canPost, sb, uid, loadContent, toast } = useApp();
   const [busy, setBusy] = useState(false);
   async function post(e) {
     e.preventDefault(); const form = e.currentTarget; const f = new FormData(form);
@@ -140,7 +140,7 @@ export function News() {
   return (
     <>
       <div className="pagehead"><h2>{pageNameOf(st, "news")}</h2></div>
-      {isAdmin && <details className="add"><summary>Post an announcement</summary>
+      {canPost && <details className="add"><summary>Post an announcement</summary>
         <form onSubmit={post}>
           <label>Title<input name="title" required maxLength={140} /></label>
           <label>Message<textarea name="body" required maxLength={4000} /></label>
@@ -153,7 +153,7 @@ export function News() {
 }
 
 export function Timetable() {
-  const { settings: st, events, isAdmin, sb, loadContent, toast } = useApp();
+  const { settings: st, events, canPost, sb, loadContent, toast } = useApp();
   const up = useUpcoming();
   const [kind, setKind] = useState("lecture");
   const lec = events.filter((e) => e.kind === "lecture");
@@ -172,7 +172,7 @@ export function Timetable() {
   return (
     <>
       <div className="pagehead"><h2>{pageNameOf(st, "timetable")}</h2></div>
-      {isAdmin && <details className="add"><summary>Add to timetable</summary>
+      {canPost && <details className="add"><summary>Add to timetable</summary>
         <form onSubmit={add}>
           <div className="row">
             <label>Type<select value={kind} onChange={(e) => setKind(e.target.value)}><option value="lecture">Weekly lecture</option><option value="test">Test</option><option value="exam">Exam</option><option value="event">Event</option></select></label>
@@ -195,7 +195,7 @@ export function Timetable() {
             {s.map((e) => <div className="slot" key={e.id}>
               <span className="t">{e.start_time}{e.end_time && "–" + e.end_time}</span><b className="mono">{e.course_code}</b><span>{e.title}</span>
               {e.venue && <span className="muted">{e.venue}</span>}
-              {isAdmin && <ConfirmButton onConfirm={() => delSlot(e.id)}>Remove</ConfirmButton>}
+              {canPost && <ConfirmButton onConfirm={() => delSlot(e.id)}>Remove</ConfirmButton>}
             </div>)}
             {!s.length && <span className="empty">No lectures</span>}</div>;
         })}</div></div></section>
@@ -206,7 +206,7 @@ export function Timetable() {
 }
 
 export function Notes() {
-  const { settings: st, notes, isAdmin, sb, loadContent, toast } = useApp();
+  const { settings: st, notes, canPost, sb, loadContent, toast } = useApp();
   const [busy, setBusy] = useState(false);
   async function share(e) {
     e.preventDefault(); const form = e.currentTarget; const f = new FormData(form); const g = (k) => String(f.get(k) || "").trim();
@@ -231,7 +231,7 @@ export function Notes() {
   return (
     <>
       <div className="pagehead"><h2>{pageNameOf(st, "notes")}</h2></div>
-      {isAdmin && <details className="add"><summary>Share a note or assignment</summary>
+      {canPost && <details className="add"><summary>Share a note or assignment</summary>
         <form onSubmit={share}>
           <div className="row">
             <label>Type<select name="kind"><option value="note">Lecture note</option><option value="assignment">Assignment</option></select></label>

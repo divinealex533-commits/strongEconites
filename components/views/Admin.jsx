@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useApp } from "../App";
 import { ConfirmButton, pageNameOf } from "./Main";
 import Avatar from "../Avatar";
-import { DEFAULT_PREFIXES, DEFAULT_WELCOME, DEPTS, LEVELS, PAGES, ROLES, safeUrl } from "@/lib/shared";
+import { DEFAULT_PREFIXES, DEFAULT_WELCOME, DEPTS, LEVELS, PAGES, STAFF_ROLES, safeUrl } from "@/lib/shared";
 
 function waLink(phone) {
   let d = String(phone || "").replace(/\D/g, "");
@@ -41,17 +41,17 @@ function ResetPassword({ m }) {
 }
 
 export function Classmates() {
-  const { sb, uid, me, setMe, members, loadMembers, isAdmin, settings: st, toast } = useApp();
+  const { sb, uid, me, setMe, members, loadMembers, isAdmin, canPost, settings: st, toast } = useApp();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const approvedList = members.filter((m) => m.approved || m.is_admin);
   const pending = members.filter((m) => !m.approved && !m.is_admin);
-  const shown = (isAdmin ? members : approvedList).filter((m) => !q || [m.full_name, m.matric, m.department].join(" ").toLowerCase().includes(q.toLowerCase()));
+  const shown = (canPost ? members : approvedList).filter((m) => !q || [m.full_name, m.matric, m.department].join(" ").toLowerCase().includes(q.toLowerCase()));
 
   async function saveProfile(e) {
     e.preventDefault(); const f = new FormData(e.currentTarget); const g = (k) => String(f.get(k) || "").trim();
     setBusy(true);
-    const patch = { full_name: g("fullName"), department: g("department"), level: g("level"), role: g("role"), phone: g("phone").replace(/[^\d+ ]/g, "") };
+    const patch = { full_name: g("fullName"), department: g("department"), level: g("level"), phone: g("phone").replace(/[^\d+ ]/g, "") };
     const { data, error } = await sb.from("profiles").update(patch).eq("id", uid).select().single();
     setBusy(false);
     if (error) return toast("Couldn't save. Try again.");
@@ -65,9 +65,9 @@ export function Classmates() {
 
   return (
     <>
-      <div className="pagehead"><h2>{pageNameOf(st, "class")}</h2><span className="muted">{approvedList.length} approved{isAdmin && ` · ${pending.length} waiting`}</span></div>
+      <div className="pagehead"><h2>{pageNameOf(st, "class")}</h2><span className="muted">{approvedList.length} approved{canPost && ` · ${pending.length} waiting`}</span></div>
 
-      {isAdmin && pending.length > 0 && (
+      {canPost && pending.length > 0 && (
         <section className="panel list"><h3>Waiting for approval ({pending.length})</h3>
           <p className="hint" style={{ margin: 0 }}>Approve only people you know are in this class.</p>
           {pending.map((m) => (
@@ -75,7 +75,7 @@ export function Classmates() {
               <div><b>{m.full_name}</b> <span className="mono">{m.matric}</span><div className="muted small">{m.department} · {m.level}</div></div>
               <div className="actions">
                 <button className="ghost" onClick={() => setFlag(m, { approved: true }, "Approved")}>Approve</button>
-                <ConfirmButton onConfirm={() => remove(m)}>Remove</ConfirmButton>
+                {isAdmin && <ConfirmButton onConfirm={() => remove(m)}>Remove</ConfirmButton>}
               </div>
             </div>
           ))}
@@ -86,12 +86,12 @@ export function Classmates() {
         <form onSubmit={saveProfile}>
           <div className="row">
             <label>Full name<input name="fullName" required maxLength={80} defaultValue={me.full_name} /></label>
-            <label>Matric number <span className="hint">ask a class rep to change it</span><input value={me.matric} disabled className="mono" /></label>
+            <label>Matric number <span className="hint">ask the admin to change it</span><input value={me.matric} disabled className="mono" /></label>
           </div>
           <div className="row">
             <label>Department<select name="department" defaultValue={me.department}>{DEPTS.map((d) => <option key={d}>{d}</option>)}</select></label>
             <label>Level<select name="level" defaultValue={me.level}>{LEVELS.map((l) => <option key={l}>{l}</option>)}</select></label>
-            <label>Role<select name="role" defaultValue={me.role}>{ROLES.map((l) => <option key={l}>{l}</option>)}</select></label>
+            <label>Role <span className="hint">set by the admin</span><input value={me.is_admin ? "Admin" : me.role} disabled /></label>
           </div>
           <label>WhatsApp / phone <span className="hint">optional · visible to classmates</span><input name="phone" maxLength={20} defaultValue={me.phone} inputMode="tel" /></label>
           <button disabled={busy}>Save changes</button>
@@ -116,7 +116,13 @@ export function Classmates() {
                 {isAdmin && m.id !== uid && (
                   <div className="actions" style={{ marginTop: 6 }}>
                     <ResetPassword m={m} />
-                    <button className="ghost" onClick={() => setFlag(m, { is_admin: !m.is_admin }, m.is_admin ? "No longer a class rep admin" : "Made a class rep admin")}>{m.is_admin ? "Remove admin" : "Make admin"}</button>
+                    {!m.is_admin && (m.approved
+                      ? <label className="rolepick">Role
+                          <select value={STAFF_ROLES.includes(m.role) ? m.role : "Student"} aria-label={"Role for " + m.full_name}
+                            onChange={(e) => setFlag(m, { role: e.target.value }, e.target.value === "Student" ? `${m.full_name.split(" ")[0]} is now a student` : `${m.full_name.split(" ")[0]} is now ${e.target.value}`)}>
+                            <option>Student</option>{STAFF_ROLES.map((r) => <option key={r}>{r}</option>)}
+                          </select></label>
+                      : <span className="hint">Approve first, then you can make them a rep.</span>)}
                     <ConfirmButton onConfirm={() => remove(m)}>Remove</ConfirmButton>
                   </div>
                 )}
@@ -133,7 +139,7 @@ export function Classmates() {
 export function Manage() {
   const { sb, isAdmin, settings: st, setSettings, toast } = useApp();
   const [busy, setBusy] = useState(false);
-  if (!isAdmin) return <div className="notice">Only class reps can manage the site.</div>;
+  if (!isAdmin) return <div className="notice">Only the admin can manage the site.</div>;
   const pn = st.pageNames || {};
 
   async function save(e) {
@@ -145,6 +151,7 @@ export function Manage() {
     const data = {
       ...st, className: g("className"), setName: g("setName"), session: g("session"), level: g("level"),
       school: g("school"), faculty: g("faculty"), department: g("department"), matricPrefixes: g("prefixes") || DEFAULT_PREFIXES,
+      chatRepsOnly: f.get("chatRepsOnly") === "on",
       welcomeMessage: g("welcome"), groupLink: safeUrl(g("groupLink")), groupLabel: g("groupLabel"), pageNames, links,
     };
     setBusy(true);
@@ -172,6 +179,9 @@ export function Manage() {
         </div>
         <label>Allowed matric numbers <span className="hint">prefixes separated by commas, e.g. EDU24, B1. Numbers must look like EDU24***** or B1******.</span>
           <input name="prefixes" className="mono" maxLength={80} defaultValue={st.matricPrefixes || DEFAULT_PREFIXES} /></label>
+        <h3>Class chat</h3>
+        <label className="inline"><input type="checkbox" name="chatRepsOnly" defaultChecked={st.chatRepsOnly === true} /> Only course reps and admin can send messages</label>
+        <p className="hint" style={{ margin: 0 }}>Turn this on during exams or for announcements only. Everyone can still read the chat.</p>
         <h3>Welcome message</h3>
         <label>Shown after every sign-up and login <span className="hint">{"{name}"} becomes the student's name, {"{class}"} the class name</span>
           <textarea name="welcome" maxLength={600} defaultValue={st.welcomeMessage || DEFAULT_WELCOME} /></label>

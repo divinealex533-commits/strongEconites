@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { PAGES } from "@/lib/shared";
+import { PAGES, STAFF_ROLES } from "@/lib/shared";
 import Header from "./Header";
 import Gate from "./Gate";
 import Welcome from "./Welcome";
@@ -86,6 +86,8 @@ export default function App({ aiEnabled }) {
 
   const member = Boolean(me && (me.approved || me.is_admin));
   const isAdmin = Boolean(me?.is_admin);
+  // course reps, assistant course reps and the admin can post class updates
+  const canPost = isAdmin || Boolean(me && me.approved && STAFF_ROLES.includes(me.role));
 
   const loadMembers = useCallback(async () => {
     const { data } = await sb.from("profiles").select("*").order("full_name");
@@ -127,10 +129,10 @@ export default function App({ aiEnabled }) {
   }, [sb]);
 
   const value = useMemo(() => ({
-    sb, aiEnabled, session, uid, me, setMe, loadMe, isAdmin, member, settings, setSettings, loadSettings,
+    sb, aiEnabled, session, uid, me, setMe, loadMe, isAdmin, canPost, member, settings, setSettings, loadSettings,
     members, loadMembers, ann, events, notes, loadContent, dash, saveDash, toast, route, logout,
     showWelcome: () => setWelcome(true),
-  }), [sb, aiEnabled, session, uid, me, loadMe, isAdmin, member, settings, loadSettings, members, loadMembers,
+  }), [sb, aiEnabled, session, uid, me, loadMe, isAdmin, canPost, member, settings, loadSettings, members, loadMembers,
     ann, events, notes, loadContent, dash, saveDash, toast, route, logout]);
 
   let body;
@@ -169,7 +171,7 @@ function Pending() {
       <div className="gatecopy">
         <span className="label">Almost in</span>
         <h2>Hi {String(me.full_name).split(" ").slice(-1)[0]}, you're signed up</h2>
-        <p>A class rep needs to confirm you're in {settings.className || "SSE ECONITES"} before you can see the chat, timetable and notes. This page updates by itself once you're approved.</p>
+        <p>A course rep needs to confirm you're in {settings.className || "SSE ECONITES"} before you can see the chat, timetable and notes. This page updates by itself once you're approved.</p>
       </div>
       <div className="panel list">
         <div><b>{me.full_name}</b> <span className="mono">{me.matric}</span></div>

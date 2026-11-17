@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { useApp } from "./App";
 import { burst } from "@/lib/confetti";
-import { DEPTS, LEVELS, ROLES, DEFAULT_PREFIXES, matricOk, matricEmail, normMatric } from "@/lib/shared";
+import { DEPTS, LEVELS, DEFAULT_PREFIXES, matricOk, matricEmail, normMatric } from "@/lib/shared";
 
 function Intro({ mode, onOpen, className }) {
   const [tossed, setTossed] = useState(false);
@@ -60,7 +60,7 @@ export default function Gate() {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({
           fullName: f.get("fullName"), matric, department: f.get("department"), level: f.get("level"),
-          role: f.get("role"), phone: f.get("phone"), password: f.get("password"),
+          phone: f.get("phone"), password: f.get("password"),
         }),
       });
       const out = await res.json().catch(() => ({}));
@@ -93,7 +93,7 @@ export default function Gate() {
             <div className="gatecopy">
               <span className="label">Students only</span>
               <h2>Join {cls}</h2>
-              <p>Sign up with your UNIBEN matric number. Numbers must start with {prefixText}, like EDU24***** or B1******. A class rep confirms you before you can chat.</p>
+              <p>Sign up with your UNIBEN matric number. Numbers must start with {prefixText}, like EDU24***** or B1******. A course rep confirms you before you can chat.</p>
               <p>Already have an account? <button type="button" className="linkbtn" onClick={() => switchTo("login")}>Log in</button></p>
             </div>
             <form className="panel" onSubmit={signUp}>
@@ -104,7 +104,6 @@ export default function Gate() {
               <div className="row">
                 <label>Department<select name="department" defaultValue="Social Science Education">{DEPTS.map((d) => <option key={d}>{d}</option>)}</select></label>
                 <label>Level<select name="level">{LEVELS.map((l) => <option key={l}>{l}</option>)}</select></label>
-                <label>Role<select name="role">{ROLES.map((l) => <option key={l}>{l}</option>)}</select></label>
               </div>
               <label>WhatsApp number <span className="hint">optional · lets classmates call you</span><input name="phone" maxLength={20} inputMode="tel" /></label>
               <div className="row">
@@ -122,7 +121,7 @@ export default function Gate() {
               <label>Matric number<input name="matric" required className="mono" placeholder="EDU24*****" autoCapitalize="characters" autoComplete="username" /></label>
               <label>Password<input name="password" type="password" required autoComplete="current-password" /></label>
               <button disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
-              <p className="hint" style={{ margin: 0 }}>Forgot your password? Ask a class rep to reset it for you.</p>
+              <p className="hint" style={{ margin: 0 }}>Forgot your password? Ask the site admin to reset it for you.</p>
               <p style={{ margin: 0 }}>New here? <button type="button" className="linkbtn big" onClick={() => switchTo("signup")}>Create an account</button></p>
             </form>
           </section>

@@ -56,7 +56,7 @@ export function GalleryUpload({ onDone, compact = false }) {
 }
 
 export default function Gallery() {
-  const { uid, isAdmin, members, settings: st, sb, toast } = useApp();
+  const { uid, canPost, members, settings: st, sb, toast } = useApp();
   const [items, reload] = useGallery();
   const [view, setView] = useState(null);
   const byId = new Map(members.map((m) => [m.id, m]));
@@ -88,7 +88,7 @@ export default function Gallery() {
               {view.caption && <p>{view.caption}</p>}
               <div className="actions">
                 <button className="ghost" onClick={() => setView(null)} autoFocus>Close</button>
-                {(view.user_id === uid || isAdmin) && <ConfirmButton onConfirm={() => del(view)} />}
+                {(view.user_id === uid || canPost) && <ConfirmButton onConfirm={() => del(view)} />}
               </div>
             </figcaption>
           </figure>

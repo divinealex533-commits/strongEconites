@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabaseAdmin";
-import { matricOk, matricEmail, normMatric, DEPTS, LEVELS, ROLES } from "@/lib/shared";
+import { matricOk, matricEmail, normMatric, DEPTS, LEVELS } from "@/lib/shared";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,7 @@ export async function POST(req) {
   const password = String(body.password || "");
   const department = DEPTS.includes(body.department) ? body.department : "Other";
   const level = LEVELS.includes(body.level) ? body.level : "100L";
-  const role = ROLES.includes(body.role) ? body.role : "Student";
+  const role = "Student"; // only the admin can make someone a course rep
   const phone = clip(body.phone, 20).replace(/[^\d+ ]/g, "");
 
   if (fullName.length < 3) return bad("Enter your full name.");

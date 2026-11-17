@@ -4,7 +4,8 @@ import { useApp } from "../App";
 import { pageNameOf } from "./Main";
 
 export default function Chat() {
-  const { sb, uid, me, members, isAdmin, settings: st, toast } = useApp();
+  const { sb, uid, me, members, canPost, settings: st, toast } = useApp();
+  const locked = st.chatRepsOnly === true && !canPost;
   const [msgs, setMsgs] = useState([]);
   const [online, setOnline] = useState({});
   const [text, setText] = useState("");
@@ -52,7 +53,7 @@ export default function Chat() {
     const temp = { id: "tmp-" + Date.now(), user_id: uid, body, created_at: new Date().toISOString(), pending: true };
     setMsgs((cur) => [...cur, temp]);
     const { error } = await sb.from("messages").insert({ user_id: uid, body });
-    if (error) { setMsgs((cur) => cur.filter((m) => m.id !== temp.id)); setText(body); toast("Message not sent. Check your connection."); }
+    if (error) { setMsgs((cur) => cur.filter((m) => m.id !== temp.id)); setText(body); toast(st.chatRepsOnly ? "Only course reps can send messages right now." : "Message not sent. Check your connection."); }
   }
   async function remove(id) {
     const { error } = await sb.from("messages").delete().eq("id", id);
@@ -82,12 +83,15 @@ export default function Chat() {
                   {!mine && <span className="from">{nameOf(m.user_id)}</span>}
                   <p>{m.body}</p>
                   <span className="tm">{d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{m.pending ? " · sending" : ""}
-                    {!m.pending && (mine || isAdmin) && <> · <button className="linkbtn" onClick={() => remove(m.id)}>delete</button></>}</span>
+                    {!m.pending && (mine || canPost) && <> · <button className="linkbtn" onClick={() => remove(m.id)}>delete</button></>}</span>
                 </div>
               </div>
             );
           })}
         </div>
+        {locked ? (
+          <div className="composer locked">Only course reps can send messages right now. You can still read everything.</div>
+        ) : (
         <form className="composer" onSubmit={send}>
           <label className="sr" htmlFor="chatText">Message</label>
           <textarea id="chatText" rows={1} maxLength={1000} placeholder={`Message ${st.className || "the class"}`} value={text}
@@ -95,6 +99,7 @@ export default function Chat() {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} />
           <button disabled={!text.trim()}>Send</button>
         </form>
+        )}
       </section>
       <p className="hint">To call a classmate, use their WhatsApp link on the {pageNameOf(st, "class")} page. Signed in as {me.matric}.</p>
     </>

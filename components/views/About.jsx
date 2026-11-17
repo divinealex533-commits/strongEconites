@@ -12,7 +12,7 @@ function Anthem({ title, text, url, isAdmin }) {
       <span className="label">Stand and sing</span>
       <h3>{title}</h3>
       {text ? <div className="lyrics">{text}</div>
-        : <p className="muted">{isAdmin ? "Paste the words under Edit page so classmates can learn them here." : "A class rep will add the words here soon."}</p>}
+        : <p className="muted">{isAdmin ? "Paste the words under Edit page so classmates can learn them here." : "The admin will add the words here soon."}</p>}
       {safeUrl(url) && <a href={safeUrl(url)} target="_blank" rel="noopener noreferrer">Official page ↗</a>}
     </section>
   );
@@ -82,7 +82,7 @@ export default function About() {
                 ))}
                 {!(about.leaders || []).length && <p className="empty">No leaders added yet.</p>}
               </div>
-              <p className="hint">Leaders change from time to time{about.checked ? `; last checked ${about.checked}` : ""}. Class reps can update this list.</p>
+              <p className="hint">Leaders change from time to time{about.checked ? `; last checked ${about.checked}` : ""}. The admin can update this list.</p>
             </section>
           )}
 

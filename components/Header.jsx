@@ -7,7 +7,8 @@ const WORDS = ["DEMAND", "SUPPLY", "ELASTICITY", "OPPORTUNITY COST", "GDP", "INF
   "MICRO · MACRO", "SOCIAL STUDIES", "₦ NAIRA", "BLOOM'S TAXONOMY"];
 
 export default function Header({ showNav }) {
-  const { settings: st, me, isAdmin, route, logout } = useApp();
+  const { settings: st, me, isAdmin, canPost, route, logout } = useApp();
+  const badge = isAdmin ? "ADMIN" : canPost ? String(me?.role || "").toUpperCase() : "";
   const pageName = (k) => st.pageNames?.[k] || PAGES.find((p) => p[0] === k)[1];
   const school = [st.school || "University of Benin", st.faculty || "Faculty of Education", st.department].filter(Boolean).join(" · ");
   return (
@@ -28,7 +29,7 @@ export default function Header({ showNav }) {
           {me && (
             <div className="who">
               <Avatar person={me} size={34} className="on-band" />
-              <span><span className="mono">{me.matric}</span>{isAdmin && <> · <span className="mono">ADMIN</span></>}</span>
+              <span><span className="mono">{me.matric}</span>{badge && <> · <span className="mono">{badge}</span></>}</span>
               <button className="ghost light" onClick={logout}>Log out</button>
             </div>
           )}
