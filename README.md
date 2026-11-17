@@ -9,7 +9,7 @@ Students sign up and log in with their **UNIBEN matric number** (EDU24\*\*\*\*\*
 - **Sign-up / login** with a chalkboard intro and "Tap me" cap toss, then a welcome message with your class group link
 - **My Dashboard** — today's lectures, assignment ticks, next-exam countdown, registered courses, Kofa shortcuts
 - **Class Chat** — live group chat with who's online and typing indicators (Supabase Realtime)
-- **Study Hub** — AI tutor and 5-question practice quizzes (optional, needs an Anthropic API key)
+- **Study Hub** — AI tutor and 5-question practice quizzes (optional: free Gemini key, or an Anthropic key)
 - **CGPA Calculator** — UNIBEN 5-point scale with class of degree
 - **Class Gallery** and profile photos
 - **Know UNIBEN** — school leaders, rules from the Student Handbook, the UNIBEN anthem and the national anthem (class reps can edit)
@@ -39,7 +39,7 @@ The **first person to sign up becomes the admin** automatically. Sign up first y
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL from Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `anon` public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | `service_role` key (keep secret) |
-| `ANTHROPIC_API_KEY` | optional — turns on Study Hub |
+| `GEMINI_API_KEY` | optional, free tier — turns on Study Hub (get it at aistudio.google.com) |
 
 3. Set the **Project Name** to `econites` so the address becomes **econites.vercel.app** (if that name is taken, Vercel suggests another).
 4. Press **Deploy**.
